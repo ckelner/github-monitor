@@ -54,10 +54,10 @@ class github(object):
       return data
 
   def getAllOrgMembers(self):
-    print('Getting all members of %s org...' % self.org)
+    print 'Getting all members of %s org...' % self.org
     all_members = self.githubGet(self.github_url_members_list,[])
     # @ckelner: build set -- per @tmulhern3 faster!  Science!
-    print('Building set for all members...')
+    print 'Building set for all members...'
     members = set()
     for member_json in all_members:
       #print(member_json['login'])

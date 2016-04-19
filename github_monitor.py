@@ -34,14 +34,14 @@ if __name__ == '__main__':
   parser.add_argument('-o', '-org', help='The Org name in GitHub', required=True)
   args = parser.parse_args()
   compileall.compile_dir('github_monitor/', force=True)
-  print('Reconciling outside collaborators...')
-  print("")
+  print 'Reconciling outside collaborators...'
+  print ''
   gh_org = github(args.k, args.o)
   reconcileGitHubOutsideCollaborators(gh_org)
   print '-' * 50
-  print 'Reconciliation complete.'
+  print 'Outside collaborators reconciliation complete.'
 
-  print('Checking for non whitelisted public repositories...')
+  print 'Checking for non whitelisted public repositories...'
   print("")
   checkPublicWhitelist(gh_org)
   print '-' * 50
