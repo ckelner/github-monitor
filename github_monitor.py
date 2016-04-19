@@ -18,10 +18,18 @@ import compileall
 from github_monitor.github import github
 
 def reconcileGitHubOutsideCollaborators(gh_org):
-  gh_org.getAllOrgMembers()
+  print 'Reconciling outside collaborators...'
+  print ''
+  members_set = gh_org.getAllOrgMembers()
+  print '-' * 50
+  print 'Outside collaborators reconciliation complete.'
 
 def checkPublicWhitelist(gh_org):
+  print 'Checking for non whitelisted public repositories...'
+  print ''
   gh_org.checkPublicWhitelist()
+  print '-' * 50
+  print 'Whitelist check complete.'
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(
@@ -34,17 +42,8 @@ if __name__ == '__main__':
   parser.add_argument('-o', '-org', help='The Org name in GitHub', required=True)
   args = parser.parse_args()
   compileall.compile_dir('github_monitor/', force=True)
-  print 'Reconciling outside collaborators...'
-  print ''
   gh_org = github(args.k, args.o)
   reconcileGitHubOutsideCollaborators(gh_org)
-  print '-' * 50
-  print 'Outside collaborators reconciliation complete.'
-
-  print 'Checking for non whitelisted public repositories...'
-  print("")
   checkPublicWhitelist(gh_org)
-  print '-' * 50
-  print 'Whitelist check complete.'
 
   sys.exit()
