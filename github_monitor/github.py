@@ -12,7 +12,7 @@ class github(object):
   PRIVATE_JSON_KEY = 'private'
   FORK_JSON_KEY = 'fork'
   FULL_NAME_JSON_KEY = 'full_name'
-  WHITELIST_FILENAME = 'public_whitelist.json'
+  REPO_WHITELIST_FILENAME = 'public_whitelist.json'
 
   def __init__(self, token, org):
     """Return a GitHub object configured with *token* and *org*."""
@@ -68,7 +68,7 @@ class github(object):
   def parsePublicWhitelist(self):
     whitelist_set = set()
     try:
-      with open(self.WHITELIST_FILENAME) as json_file:
+      with open(self.REPO_WHITELIST_FILENAME) as json_file:
         json_data = json.load(json_file)
         for name in json_data.get(self.FULL_NAME_JSON_KEY):
           whitelist_set.add(name)
