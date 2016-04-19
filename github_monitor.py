@@ -20,6 +20,9 @@ from github_monitor.github import github
 def reconcileGitHubOutsideCollaborators(gh_org):
   gh_org.getAllOrgMembers()
 
+def checkPublicWhitelist(gh_org):
+  gh_org.checkPublicWhitelist()
+
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(
   description='Reconcile GitHub outside collaborators and public repos against \
@@ -37,4 +40,11 @@ if __name__ == '__main__':
   reconcileGitHubOutsideCollaborators(gh_org)
   print '-' * 50
   print 'Reconciliation complete.'
+
+  print('Checking for non whitelisted public repositories...')
+  print("")
+  checkPublicWhitelist(gh_org)
+  print '-' * 50
+  print 'Whitelist check complete.'
+
   sys.exit()
