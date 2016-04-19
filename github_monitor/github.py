@@ -48,7 +48,8 @@ class github(object):
         link = self.parseGitHubLinkHeader(response.headers['link'].split(','))
     except KeyError:
       pass
-    data = data + response_json
+    if response.status_code is self.OK:
+      data = data + response_json
     if link != None:
       return self.githubGet(link, data)
     else:
