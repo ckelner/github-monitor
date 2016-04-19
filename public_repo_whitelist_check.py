@@ -2,6 +2,10 @@ import requests
 import json
 import sys
 
+# Scan public repos for TWC Org and compare to a whitelist,
+# send email if they are entries that are not in the whitelist
+
+
 ORG_NAME = 'TheWeatherCompany'
 GITHUB_BASE_URL = 'https://api.github.com'
 GITHUB_ORGS_URL = 'orgs'
