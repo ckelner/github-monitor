@@ -23,8 +23,9 @@ class github(object):
     }
     self.token = token
     self.org = org
-    self.github_url_members_list = 'https://api.github.com/orgs/%s/members' % org
-    self.github_url_repos_list = 'https://api.github.com/orgs/%s/repos' % org
+    self.github_api_endpoint = 'https://api.github.com'
+    self.github_url_members_list = '%s/orgs/%s/members' % (self.github_api_endpoint, org)
+    self.github_url_repos_list = '%s/orgs/%s/repos' % (self.github_api_endpoint, org)
 
   @staticmethod
   def parseGitHubLinkHeader(links):
@@ -68,6 +69,16 @@ class github(object):
       members.add(member_json['login'])
     return members
 
+  def getAllOrgRepos(self):
+    print 'Getting all repos for %s org...' % self.org
+    return self.githubGet(self.github_url_repos_list)
+
+  def getCollaboratorsForRepo(self, repo):
+    #/repos/:owner/:repo/collaborators
+    url = '%s/repos/%s/%s/collaborators' % (self.github_api_endpoint, self.org, repo['name'])
+    return self.githubGet(url)
+
+  # TODO: Move to github_monitor.py -- duplicated there already
   def parsePublicWhitelist(self):
     whitelist_set = set()
     try:
