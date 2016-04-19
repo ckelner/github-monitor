@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 ##############################################################################
-# Looks at the organization's outside collaborators list and compares it to
-# the local outside_collaborators_whitelist.json and sends an email if any
-# outside collaborator is found that isn't in the whitelist
-# Author: @ckelner
+# Looks at a GitHub organization's:
+#   - Outside collaborators
+#   - Public Source (non-fork) repositories
+#   - Organization Billing
+# Fires email if:
+#   - collaborators or repos are found that are not in whitelist files
+#   - number of used private repos is within certain limit of organization plan
+# Author: @ckelner & @tmulhern3
 # Init: 2016.04.19
 ##############################################################################
 
@@ -11,26 +15,26 @@ import argparse
 import sys
 import json
 import compileall
-
 from github_monitor.github import github
 
-def reconcileGitHub(gh_org):
+def reconcileGitHubOutsideCollaborators(gh_org):
   gh_org.getAllOrgMembers()
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(
-  description='Reconcile GitHub outside collaborators against a whitelist, \
-      "outside_collaborators_whitelist.json" and send email alert if entity \
-      found in GitHub Org but not in whitelist.')
+  description='Reconcile GitHub outside collaborators and public repos against \
+    whitelists, and monitors billing for number of repos.  Alerts on conditions \
+    where collaborators or repos are found that aren not in whitelists or if \
+    number of repos is within organization plan limit')
   parser.add_argument('-k', '-key', help='The GitHub token(key) to use to talk to the API',
-      required=True)
+    required=True)
   parser.add_argument('-o', '-org', help='The Org name in GitHub', required=True)
   args = parser.parse_args()
   compileall.compile_dir('github_monitor/', force=True)
   print('Reconciling outside collaborators...')
   print("")
   gh_org = github(args.k, args.o)
-  reconcileGitHub(gh_org)
+  reconcileGitHubOutsideCollaborators(gh_org)
   print '-' * 50
   print 'Reconciliation complete.'
   sys.exit()
