@@ -37,10 +37,14 @@ class github(object):
         next_link = link.split(';')[0].replace('<', '').replace('>', '')
     return next_link
 
+  def formatInvalidHttpStatusMessage(self, url, status_code):
+    return ('ERROR: Did not recieve 200 OK from ' + url + '\nReceived ' +
+      str(status_code) + ' instead')
+
   def githubGet(self, url, data=[]):
     response = requests.get(url, headers=self.HEADERS)
     if response.status_code is not self.OK:
-      sys.exit(formatInvalidHttpStatusMessage(url, str(response.status_code)))
+      sys.exit(self.formatInvalidHttpStatusMessage(url, response.status_code))
     response_json = response.json()
     link = None
     try:
