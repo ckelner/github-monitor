@@ -7,6 +7,11 @@ class github(object):
     token: A personal access token with read privileges
     org: The GitHub organization to interact with
   """
+  OK = 200
+  PRIVATE_JSON_KEY = 'private'
+  FORK_JSON_KEY = 'fork'
+  FULL_NAME_JSON_KEY = 'full_name'
+  WHITELIST_FILENAME = 'public_whitelist.json'
 
   def __init__(self, token, org):
     """Return a GitHub object configured with *token* and *org*."""
@@ -18,6 +23,7 @@ class github(object):
     self.token = token
     self.org = org
     self.github_url_members_list = 'https://api.github.com/orgs/%s/members' % org
+    self.github_url_repos_list = 'https://api.github.com/orgs/%s/repos' % org
 
   @staticmethod
   def parseGitHubLinkHeader(links):
@@ -32,6 +38,8 @@ class github(object):
 
   def githubGet(self, url, data=[]):
     response = requests.get(url, headers=self.HEADERS)
+    if response.status_code is not self.OK:
+      sys.exit(formatInvalidHttpStatusMessage(url, str(response.status_code)))
     response_json = response.json()
     link = None
     try:
@@ -55,3 +63,22 @@ class github(object):
       #print(member_json['login'])
       members.add(member_json['login'])
     return members
+
+  def parseWhitelist(self):
+    whitelist_set = set()
+    try:
+      with open(self.WHITELIST_FILENAME) as json_file:
+        json_data = json.load(json_file)
+        for name in json_data.get(self.FULL_NAME_JSON_KEY):
+          whitelist_set.add(name)
+
+        return whitelist_set
+    except IOError:
+      sys.exit(formatIOError())
+
+  def checkWhitelist(self):
+    whitelist_set = self.parseWhitelist()
+    for repo in self.githubGet(self.github_url_repos_list):
+      if repo.get(self.PRIVATE_JSON_KEY) == False and repo.get(self.FORK_JSON_KEY) == False and not repo.get(self.FULL_NAME_JSON_KEY) in whitelist_set:
+        # TODO: Send email notifying user
+        print 'REPO \'' + repo.get(self.FULL_NAME_JSON_KEY) + ' SHOULD BE PRIVATE'
