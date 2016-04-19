@@ -18,7 +18,7 @@ def reconcileGitHub(gh_org):
   gh_org.getAllOrgMembers()
 
 def checkPublicWhitelist(gh_org):
-  gh_org.checkWhitelist()
+  gh_org.checkPublicWhitelist()
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(

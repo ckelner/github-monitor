@@ -64,7 +64,7 @@ class github(object):
       members.add(member_json['login'])
     return members
 
-  def parseWhitelist(self):
+  def parsePublicWhitelist(self):
     whitelist_set = set()
     try:
       with open(self.WHITELIST_FILENAME) as json_file:
@@ -76,8 +76,8 @@ class github(object):
     except IOError:
       sys.exit(formatIOError())
 
-  def checkWhitelist(self):
-    whitelist_set = self.parseWhitelist()
+  def checkPublicWhitelist(self):
+    whitelist_set = self.parsePublicWhitelist()
     for repo in self.githubGet(self.github_url_repos_list):
       if repo.get(self.PRIVATE_JSON_KEY) == False and repo.get(self.FORK_JSON_KEY) == False and not repo.get(self.FULL_NAME_JSON_KEY) in whitelist_set:
         # TODO: Send email notifying user
