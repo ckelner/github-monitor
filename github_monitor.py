@@ -18,6 +18,8 @@ import compileall
 from tqdm import tqdm
 from github_monitor.github import github
 
+OUTSIDE_COLLABORATORS_WHITELIST_FILENAME = 'outside_collaborators_whitelist.json'
+
 def reconcileGitHubOutsideCollaborators(gh_org):
   print 'Reconciling outside collaborators...'
   members = gh_org.getAllOrgMembers() #set
@@ -40,6 +42,18 @@ def checkPublicWhitelist(gh_org):
   print '-' * 50
   print 'Whitelist check complete.'
 
+def parseWhitelist(self, which_list):
+  whitelist_set = set()
+  try:
+    with open(which_list) as json_file:
+      json_data = json.load(json_file)
+      for name in json_data.get(self.FULL_NAME_JSON_KEY):
+        whitelist_set.add(name)
+
+      return whitelist_set
+  except IOError:
+    sys.exit(formatIOError())
+
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(
   description='Reconcile GitHub outside collaborators and public repos against \
@@ -54,5 +68,4 @@ if __name__ == '__main__':
   gh_org = github(args.k, args.o)
   reconcileGitHubOutsideCollaborators(gh_org)
   checkPublicWhitelist(gh_org)
-
   sys.exit()
