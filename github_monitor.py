@@ -15,6 +15,7 @@ import argparse
 import sys
 import json
 import compileall
+from tqdm import tqdm
 from github_monitor.github import github
 
 def reconcileGitHubOutsideCollaborators(gh_org):
