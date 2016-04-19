@@ -1,0 +1,57 @@
+import requests
+import json
+
+class github(object):
+  """Provides wrapper for querying the GitHub Org.
+  Attributes:
+    token: A personal access token with read privileges
+    org: The GitHub organization to interact with
+  """
+
+  def __init__(self, token, org):
+    """Return a GitHub object configured with *token* and *org*."""
+    self.HEADERS = {
+        'Content-Type': 'application/json',
+        'Authorization': 'token %s' % token,
+        'Accept': 'application/vnd.github.ironman-preview+json'
+    }
+    self.token = token
+    self.org = org
+    self.github_url_members_list = 'https://api.github.com/orgs/%s/members' % org
+
+  @staticmethod
+  def parseGitHubLinkHeader(links):
+    next_link = None
+    for link in links:
+      if link.find('next') != -1:
+        # format:
+        # <https://api.github.com/organizations/2650031/members?filter=2fa_disabled&page=2>;
+        # rel="next"
+        next_link = link.split(';')[0].replace('<', '').replace('>', '')
+    return next_link
+
+  def githubGet(self, url, data=[]):
+    response = requests.get(url, headers=self.HEADERS)
+    response_json = response.json()
+    link = None
+    try:
+      if 'link' in response.headers:
+        link = self.parseGitHubLinkHeader(response.headers['link'].split(','))
+    except KeyError:
+      pass
+    data = data + response_json
+    if link != None:
+      return self.githubGet(link, data)
+    else:
+      return data
+
+  def getAllOrgMembers(self):
+    print('Getting all members of %s org...' % self.org)
+    all_members = self.githubGet(self.github_url_members_list,[])
+    # @ckelner: build set -- per @tmulhern3 faster!  Science!
+    print('Building set for all members...')
+    members = set()
+    for member_json in all_members:
+      #print(member_json['login'])
+      members.add(member_json['login'])
+    return members
