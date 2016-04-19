@@ -35,7 +35,6 @@ def reconcileGitHubOutsideCollaborators(gh_org):
 
 def checkPublicWhitelist(gh_org):
   print 'Checking for non whitelisted public repositories...'
-  print ''
   gh_org.checkPublicWhitelist()
   print '-' * 50
   print 'Whitelist check complete.'
