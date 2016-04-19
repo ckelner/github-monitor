@@ -19,8 +19,17 @@ from github_monitor.github import github
 
 def reconcileGitHubOutsideCollaborators(gh_org):
   print 'Reconciling outside collaborators...'
-  print ''
-  members_set = gh_org.getAllOrgMembers()
+  members = gh_org.getAllOrgMembers() #set
+  repos = gh_org.getAllOrgRepos() #dict
+  print 'Processing GitHub Repos for outside collaborators...'
+  for repo in tqdm(repos):
+    repo_collaborators = gh_org.getCollaboratorsForRepo(repo)
+    if repo_collaborators is not None and len(repo_collaborators) != 0:
+      for collaborator in repo_collaborators:
+        if collaborator['login'] not in members:
+          print 'Found outside collaborator %s' % collaborator['login']
+  # TODO: parse in whitelist
+  # TODO: send email
   print '-' * 50
   print 'Outside collaborators reconciliation complete.'
 
