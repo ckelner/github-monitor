@@ -16,6 +16,7 @@ import sys
 import json
 import compileall
 from github_monitor.github import github
+from github_monitor.amazon import amazon
 
 def reconcileGitHubOutsideCollaborators(gh_org):
   print 'Reconciling outside collaborators...'
@@ -24,10 +25,10 @@ def reconcileGitHubOutsideCollaborators(gh_org):
   print '-' * 50
   print 'Outside collaborators reconciliation complete.'
 
-def checkPublicWhitelist(gh_org):
+def checkPublicWhitelist(gh_org, aws_ses):
   print 'Checking for non whitelisted public repositories...'
   print ''
-  gh_org.checkPublicWhitelist()
+  gh_org.checkPublicWhitelist(aws_ses)
   print '-' * 50
   print 'Whitelist check complete.'
 
@@ -40,10 +41,14 @@ if __name__ == '__main__':
   parser.add_argument('-k', '-key', help='The GitHub token(key) to use to talk to the API',
     required=True)
   parser.add_argument('-o', '-org', help='The Org name in GitHub', required=True)
+  parser.add_argument('-aws_access_key_id', help='The access key id for AWS', required=True)
+  parser.add_argument('-aws_secret_access_key', help='The secret access key for AWS', required=True)
+  parser.add_argument('-email_list', help='CSV of emails to send to', required=True)
   args = parser.parse_args()
   compileall.compile_dir('github_monitor/', force=True)
+  aws_ses = amazon(args.aws_access_key_id, args.aws_secret_access_key, args.email_list)
   gh_org = github(args.k, args.o)
   reconcileGitHubOutsideCollaborators(gh_org)
-  checkPublicWhitelist(gh_org)
+  checkPublicWhitelist(gh_org, aws_ses)
 
   sys.exit()
