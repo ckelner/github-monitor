@@ -79,7 +79,12 @@ class github(object):
   def checkPublicWhitelist(self, aws_ses):
     whitelist_set = self.parsePublicWhitelist()
     for repo in self.githubGet(self.github_url_repos_list):
-      if repo.get(self.PRIVATE_JSON_KEY) == False and repo.get(self.FORK_JSON_KEY) == False and not repo.get(self.FULL_NAME_JSON_KEY) in whitelist_set:
-        # TODO: Send email notifying user
+      if (repo.get(self.PRIVATE_JSON_KEY) == False and
+          repo.get(self.FORK_JSON_KEY) == False and
+          not repo.get(self.FULL_NAME_JSON_KEY) in whitelist_set):
         print 'REPO \'' + repo.get(self.FULL_NAME_JSON_KEY) + ' SHOULD BE PRIVATE'
-        aws_ses.sendPublicWhitelist(repo.get(self.FULL_NAME_JSON_KEY))
+        aws_ses.subject = ('Repository ' + repo.get(self.FULL_NAME_JSON_KEY) +
+          ' needs to be private')
+        aws_ses.body = ('Repository ' + repo.get(self.FULL_NAME_JSON_KEY) +
+          ' needs to be private')
+        aws_ses.send()

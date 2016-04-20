@@ -16,7 +16,7 @@ import sys
 import json
 import compileall
 from github_monitor.github import github
-from github_monitor.amazon import amazon
+from github_monitor.amazon import Amazon
 
 def reconcileGitHubOutsideCollaborators(gh_org):
   print 'Reconciling outside collaborators...'
@@ -46,7 +46,8 @@ if __name__ == '__main__':
   parser.add_argument('-email_list', help='CSV of emails to send to', required=True)
   args = parser.parse_args()
   compileall.compile_dir('github_monitor/', force=True)
-  aws_ses = amazon(args.aws_access_key_id, args.aws_secret_access_key, args.email_list)
+  aws_ses = Amazon(args.aws_access_key_id, args.aws_secret_access_key, args.email_list,
+    'grid-team@weather.com')
   gh_org = github(args.k, args.o)
   reconcileGitHubOutsideCollaborators(gh_org)
   checkPublicWhitelist(gh_org, aws_ses)
