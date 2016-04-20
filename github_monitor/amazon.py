@@ -34,7 +34,3 @@ class amazon(object):
         }
       }
     )
-
-  def sendPublicWhitelist(self, repo_name):
-    self.send('Repository ' + repo_name + ' needs to be private', 'Repository '
-      + repo_name + ' needs to be Private')

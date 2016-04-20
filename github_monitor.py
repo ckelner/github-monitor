@@ -24,6 +24,7 @@ REPO_WHITELIST_FILENAME = 'public_repos_whitelist.json'
 OUTSIDE_COLLABORATORS_WHITELIST_FILENAME = 'outside_collaborators_whitelist.json'
 ERRORS = []
 EMAIL_BODY = 'The following issues were found in the TWC GitHub Org:\n\n'
+EMAIL_SUBJECT = 'Attn: TWC GitHub Org Issues detected!'
 
 def reconcileGitHubOutsideCollaborators(gh_org, skip, debug):
   global ERRORS
@@ -52,7 +53,6 @@ def reconcileGitHubOutsideCollaborators(gh_org, skip, debug):
       ERRORS.append(str(e) + " -- during execution of reconcileGitHubOutsideCollaborators while calling parseWhitelist")
       return
     print 'Processing GitHub Repos for outside collaborators...'
-    first_find = True
     if debug:
       print 'In debug mode, setting false data, skipping calling all repos...'
       outside_collabs.add('debug-test-user')
@@ -64,6 +64,7 @@ def reconcileGitHubOutsideCollaborators(gh_org, skip, debug):
             if collaborator['login'] not in members:
               if collaborator['login'] not in outside_collabs:
                 outside_collabs.add(collaborator['login'])
+    first_find = True
     for collab in outside_collabs:
       if collab not in whitelist:
         if first_find:
@@ -93,10 +94,15 @@ def checkPublicSourceReposAgainstWhitelist(gh_org, skip):
     except ValueError as e:
       ERRORS.append(str(e) + " -- during execution of checkPublicSourceReposAgainstWhitelist while calling parseWhitelist")
       return
+    first_find = True
     for repo in publicSourceRepos:
       if repo not in whitelist:
-        # TODO: add to email body
-        print repo
+        if first_find:
+          first_find = False
+          EMAIL_BODY += 'Public Source Repos not in whitelist:\n'
+        EMAIL_BODY += '- %s\n' % repo
+    if first_find is False:
+      EMAIL_BODY += '\nPlease contact the owners of these repos.\n\n'
   else:
     print 'Skipping check for publics repositories'
 
@@ -154,7 +160,7 @@ if __name__ == '__main__':
   if args.d:
     print 'DEBUG: printing email body:\n'
     print EMAIL_BODY
-  # TODO: add email call
+  aws_ses.send(EMAIL_SUBJECT, EMAIL_BODY)
   # TODO: GitHub Billing
   print 'Reconciliation complete.'
   print '-' * 50
