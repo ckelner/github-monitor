@@ -11,6 +11,9 @@
 # Init: 2016.04.19
 ##############################################################################
 
+# TODO: some weird return values here-in for some of the methods.  Python-fu is
+# weak -- do some research on how to better handle multiple returns values?
+
 import argparse
 import sys
 import json
