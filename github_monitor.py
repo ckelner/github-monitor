@@ -105,6 +105,24 @@ def checkPublicSourceReposAgainstWhitelist(gh_org, repos, skip):
     print 'Skipping check for publics repositories'
     return 0
 
+def checkPrivateRepoCount(repos, limit, diff, skip):
+  global ERRORS
+  global EMAIL_BODY
+  if skip is False:
+    count = 0
+    for repo in repos:
+      if repo['private'] is True and repo['fork'] is False:
+        count += 1
+    if count >= (int(limit) - int(diff)):
+      EMAIL_BODY += 'Private repository count is %s; Limit passed to script is %s.  ' % (count, limit)
+      EMAIL_BODY += 'The allowable difference is %s, please update your billing tier in GitHub ASAP.' % diff
+      return True
+    else:
+      return False
+  else:
+    print 'Skipping check for private repository count'
+    return 0
+
 # can throw: ValueError
 # can throw: IOError
 def parseWhitelist(which_list):
@@ -150,6 +168,11 @@ if __name__ == '__main__':
   parser.add_argument('-k', '-key', help='The GitHub token(key) to use to talk to the API',
     required=True)
   parser.add_argument('-o', '-org', help='The Org name in GitHub', required=True)
+  parser.add_argument('-l', '-private_repo_limit', help='The private repo limit \
+    for the GitHub org', required=True)
+  parser.add_argument('-n', '-private_repo_alert_value', help='The diff between the \
+    -l flag value (upper bound private repo limit) and the actual private repo limit count',
+    required=True)
   parser.add_argument('-aws_access_key_id', help='A access key id for AWS to send email via SES',
     required=True)
   parser.add_argument('-aws_secret_access_key', help='A secret access key for AWS to send email via SES',
@@ -158,6 +181,8 @@ if __name__ == '__main__':
   parser.add_argument('-s', '-skip_outside_collab', help='Skips checking outside collaborators',
     action='store_true', default=False)
   parser.add_argument('-p', '-skip_public_repos', help='Skips checking publics repos',
+    action='store_true', default=False)
+  parser.add_argument('-c', '-skip_private_repo_count', help='Skips checking private repo count',
     action='store_true', default=False)
   parser.add_argument('-d', '-debug', help='Enables debug mode for development',
     action='store_true', default=False)
@@ -172,7 +197,8 @@ if __name__ == '__main__':
   repos = getAllOrgRepos(gh_org)
   if repos is not 1:
     reconcileGitHubOutsideCollaborators(gh_org, repos, args.s, args.d)
-    checkPublicSourceReposAgainstWhitelist(gh_org, repos args.p)
+    checkPublicSourceReposAgainstWhitelist(gh_org, repos, args.p)
+    checkPrivateRepoCount(repos, args.l, args.n, args.c)
   else:
     print 'Skipping checks, there was an error getting the GitHub organization repos'
   handleErrors(args.d)
