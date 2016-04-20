@@ -1,18 +1,16 @@
 import boto3
 
-class Amazon(object):
+class amazon(object):
   """
   AWS SES client using boto3.
   """
 
   def __init__(self, aws_access_key_id, aws_secret_access_key, destination_emails,
-    source_email, subject=None, body=None):
+    source_email):
     self.aws_access_key_id = aws_access_key_id
     self.aws_secret_access_key = aws_secret_access_key
     self.source_email = source_email
     self.destination_emails = destination_emails.split(',')
-    self.subject = subject
-    self.body = body
 
     self.client = boto3.client(
       'ses',
@@ -32,11 +30,11 @@ class Amazon(object):
       },
       Message={
         'Subject': {
-          'Data': self.subject
+          'Data': subject
         },
         'Body': {
           'Text': {
-            'Data': self.body
+            'Data': body
           }
         }
       }
