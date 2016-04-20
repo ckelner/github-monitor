@@ -1,5 +1,7 @@
 import requests
 import json
+import sys
+from custom_exceptions import GitHubHTTPException
 
 class github(object):
   """Provides wrapper for querying the GitHub Org.
@@ -8,10 +10,6 @@ class github(object):
     org: The GitHub organization to interact with
   """
   OK = 200
-  PRIVATE_JSON_KEY = 'private'
-  FORK_JSON_KEY = 'fork'
-  FULL_NAME_JSON_KEY = 'full_name'
-  WHITELIST_FILENAME = 'public_whitelist.json'
 
   def __init__(self, token, org):
     """Return a GitHub object configured with *token* and *org*."""
@@ -22,8 +20,9 @@ class github(object):
     }
     self.token = token
     self.org = org
-    self.github_url_members_list = 'https://api.github.com/orgs/%s/members' % org
-    self.github_url_repos_list = 'https://api.github.com/orgs/%s/repos' % org
+    self.github_api_endpoint = 'https://api.github.com'
+    self.github_url_members_list = '%s/orgs/%s/members' % (self.github_api_endpoint, org)
+    self.github_url_repos_list = '%s/orgs/%s/repos' % (self.github_api_endpoint, org)
 
   @staticmethod
   def parseGitHubLinkHeader(links):
@@ -36,10 +35,14 @@ class github(object):
         next_link = link.split(';')[0].replace('<', '').replace('>', '')
     return next_link
 
+  def formatInvalidHttpStatusMessage(self, url, status_code):
+    return ('ERROR: Did not recieve 200 OK from ' + url + '\nReceived ' +
+      str(status_code) + ' instead')
+
   def githubGet(self, url, data=[]):
     response = requests.get(url, headers=self.HEADERS)
     if response.status_code is not self.OK:
-      sys.exit(formatInvalidHttpStatusMessage(url, str(response.status_code)))
+      raise GitHubHTTPException(self.formatInvalidHttpStatusMessage(url, response.status_code))
     response_json = response.json()
     link = None
     try:
@@ -47,7 +50,8 @@ class github(object):
         link = self.parseGitHubLinkHeader(response.headers['link'].split(','))
     except KeyError:
       pass
-    data = data + response_json
+    if response.status_code is self.OK:
+      data = data + response_json
     if link != None:
       return self.githubGet(link, data)
     else:
@@ -57,34 +61,16 @@ class github(object):
     print 'Getting all members of %s org...' % self.org
     all_members = self.githubGet(self.github_url_members_list,[])
     # @ckelner: build set -- per @tmulhern3 faster!  Science!
-    print 'Building set for all members...'
     members = set()
     for member_json in all_members:
-      #print(member_json['login'])
       members.add(member_json['login'])
     return members
 
-  def parsePublicWhitelist(self):
-    whitelist_set = set()
-    try:
-      with open(self.WHITELIST_FILENAME) as json_file:
-        json_data = json.load(json_file)
-        for name in json_data.get(self.FULL_NAME_JSON_KEY):
-          whitelist_set.add(name)
+  def getAllOrgRepos(self):
+    print 'Getting all repos for %s org...' % self.org
+    return self.githubGet(self.github_url_repos_list)
 
-        return whitelist_set
-    except IOError:
-      sys.exit(formatIOError())
-
-  def checkPublicWhitelist(self, aws_ses):
-    whitelist_set = self.parsePublicWhitelist()
-    for repo in self.githubGet(self.github_url_repos_list):
-      if (repo.get(self.PRIVATE_JSON_KEY) == False and
-          repo.get(self.FORK_JSON_KEY) == False and
-          not repo.get(self.FULL_NAME_JSON_KEY) in whitelist_set):
-        print 'REPO \'' + repo.get(self.FULL_NAME_JSON_KEY) + ' SHOULD BE PRIVATE'
-        aws_ses.subject = ('Repository ' + repo.get(self.FULL_NAME_JSON_KEY) +
-          ' needs to be private')
-        aws_ses.body = ('Repository ' + repo.get(self.FULL_NAME_JSON_KEY) +
-          ' needs to be private')
-        aws_ses.send()
+  def getCollaboratorsForRepo(self, repo):
+    #/repos/:owner/:repo/collaborators
+    url = '%s/repos/%s/%s/collaborators' % (self.github_api_endpoint, self.org, repo['name'])
+    return self.githubGet(url)
