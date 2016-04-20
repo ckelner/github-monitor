@@ -132,14 +132,16 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser(
   description='Reconcile GitHub outside collaborators and public repos against \
     whitelists, and monitors billing for number of repos.  Alerts on conditions \
-    where collaborators or repos are found that aren not in whitelists or if \
+    where collaborators or repos are found that are not in whitelists or if the \
     number of repos is within organization plan limit')
   parser.add_argument('-k', '-key', help='The GitHub token(key) to use to talk to the API',
     required=True)
   parser.add_argument('-o', '-org', help='The Org name in GitHub', required=True)
-  parser.add_argument('-aws_access_key_id', help='The access key id for AWS', required=True)
-  parser.add_argument('-aws_secret_access_key', help='The secret access key for AWS', required=True)
-  parser.add_argument('-email_list', help='CSV of emails to send to', required=True)
+  parser.add_argument('-aws_access_key_id', help='A access key id for AWS to send email via SES',
+    required=True)
+  parser.add_argument('-aws_secret_access_key', help='A secret access key for AWS to send email via SES',
+    required=True)
+  parser.add_argument('-email_list', help='CSV of emails to send alerts to', required=True)
   parser.add_argument('-s', '-skip_outside_collab', help='Skips checking outside collaborators',
     action='store_true', default=False)
   parser.add_argument('-p', '-skip_public_repos', help='Skips checking publics repos',
