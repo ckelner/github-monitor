@@ -1,6 +1,7 @@
 import requests
 import json
 import sys
+from custom_exceptions import GitHubHTTPException
 
 class github(object):
   """Provides wrapper for querying the GitHub Org.
@@ -12,7 +13,6 @@ class github(object):
   PRIVATE_JSON_KEY = 'private'
   FORK_JSON_KEY = 'fork'
   FULL_NAME_JSON_KEY = 'full_name'
-  REPO_WHITELIST_FILENAME = 'public_whitelist.json'
 
   def __init__(self, token, org):
     """Return a GitHub object configured with *token* and *org*."""
@@ -45,7 +45,7 @@ class github(object):
   def githubGet(self, url, data=[]):
     response = requests.get(url, headers=self.HEADERS)
     if response.status_code is not self.OK:
-      sys.exit(self.formatInvalidHttpStatusMessage(url, response.status_code))
+      raise GitHubHTTPException(self.formatInvalidHttpStatusMessage(url, response.status_code))
     response_json = response.json()
     link = None
     try:
@@ -78,23 +78,9 @@ class github(object):
     url = '%s/repos/%s/%s/collaborators' % (self.github_api_endpoint, self.org, repo['name'])
     return self.githubGet(url)
 
-  # TODO: Move to github_monitor.py -- duplicated there already
-  def parsePublicWhitelist(self):
-    whitelist_set = set()
-    try:
-      with open(self.REPO_WHITELIST_FILENAME) as json_file:
-        json_data = json.load(json_file)
-        for name in json_data.get(self.FULL_NAME_JSON_KEY):
-          whitelist_set.add(name)
-
-        return whitelist_set
-    except IOError:
-      sys.exit(formatIOError())
-
-  def checkPublicWhitelist(self, aws_ses):
-    whitelist_set = self.parsePublicWhitelist()
+  def getPublicSourceRepos(self):
+    public_repos = set()
     for repo in self.githubGet(self.github_url_repos_list):
-      if repo.get(self.PRIVATE_JSON_KEY) == False and repo.get(self.FORK_JSON_KEY) == False and not repo.get(self.FULL_NAME_JSON_KEY) in whitelist_set:
-        # TODO: Send email notifying user
-        print 'REPO \'' + repo.get(self.FULL_NAME_JSON_KEY) + ' SHOULD BE PRIVATE'
-        aws_ses.sendPublicWhitelist(repo.get(self.FULL_NAME_JSON_KEY))
+      if repo.get(self.PRIVATE_JSON_KEY) == False and repo.get(self.FORK_JSON_KEY) == False:
+        public_repos.add(repo.get(self.FULL_NAME_JSON_KEY))
+    return public_repos

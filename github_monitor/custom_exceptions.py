@@ -1,0 +1,2 @@
+class GitHubHTTPException(Exception):
+  pass
