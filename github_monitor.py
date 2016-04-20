@@ -191,7 +191,8 @@ if __name__ == '__main__':
     action='store_true', default=False)
   args = parser.parse_args()
   compileall.compile_dir('github_monitor/', force=True)
-  aws_ses = amazon(args.aws_access_key_id, args.aws_secret_access_key, args.email_list)
+  aws_ses = Amazon(args.aws_access_key_id, args.aws_secret_access_key, args.email_list,
+    'grid-team@weather.com')
   gh_org = github(args.k, args.o)
   if args.d:
     print '!' * 25
