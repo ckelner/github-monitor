@@ -26,12 +26,14 @@ from github_monitor.custom_exceptions import GitHubHTTPException
 REPO_WHITELIST_FILENAME = 'public_repos_whitelist.json'
 OUTSIDE_COLLABORATORS_WHITELIST_FILENAME = 'outside_collaborators_whitelist.json'
 ERRORS = []
+ISSUE_FOUND = False
 EMAIL_BODY = 'The following issues were found in the TWC GitHub Org:\n\n'
 EMAIL_SUBJECT = 'Attn: TWC GitHub Org Issues detected!'
 
 def reconcileGitHubOutsideCollaborators(gh_org, repos, skip, debug):
   global ERRORS
   global EMAIL_BODY
+  global ISSUE_FOUND
   if skip is False:
     print 'Reconciling outside collaborators...'
     outside_collabs = set()
@@ -67,6 +69,7 @@ def reconcileGitHubOutsideCollaborators(gh_org, repos, skip, debug):
     first_find = True
     for collab in outside_collabs:
       if collab not in whitelist:
+        ISSUE_FOUND = True
         if first_find:
           first_find = False
           EMAIL_BODY += 'Outside Collaborators not in whitelist:\n'
@@ -80,6 +83,7 @@ def reconcileGitHubOutsideCollaborators(gh_org, repos, skip, debug):
 def checkPublicSourceReposAgainstWhitelist(gh_org, repos, skip):
   global ERRORS
   global EMAIL_BODY
+  global ISSUE_FOUND
   if skip is False:
     print 'Checking for public repositories...'
     try:
@@ -98,6 +102,7 @@ def checkPublicSourceReposAgainstWhitelist(gh_org, repos, skip):
     first_find = True
     for repo in publicSourceRepos:
       if repo not in whitelist:
+        ISSUE_FOUND = True
         if first_find:
           first_find = False
           EMAIL_BODY += 'Public Source Repos not in whitelist:\n'
@@ -111,12 +116,14 @@ def checkPublicSourceReposAgainstWhitelist(gh_org, repos, skip):
 def checkPrivateRepoCount(repos, limit, diff, skip):
   global ERRORS
   global EMAIL_BODY
+  global ISSUE_FOUND
   if skip is False:
     count = 0
     for repo in repos:
       if repo['private'] is True and repo['fork'] is False:
         count += 1
     if count >= (int(limit) - int(diff)):
+      ISSUE_FOUND = True
       EMAIL_BODY += 'Private repository count is %s; Limit passed to script is %s.  ' % (count, limit)
       EMAIL_BODY += 'The allowable difference is %s, please update your billing tier in GitHub ASAP.' % diff
       return True
@@ -213,7 +220,10 @@ if __name__ == '__main__':
     print EMAIL_BODY
     print ''
     print '-' * 50
-  aws_ses.send(EMAIL_SUBJECT, EMAIL_BODY)
+  if ISSUE_FOUND:
+    aws_ses.send(EMAIL_SUBJECT, EMAIL_BODY)
+  else:
+    print 'No issues found, not sending email'
   print '-' * 50
   print 'Reconciliation complete.'
   print '-' * 50
