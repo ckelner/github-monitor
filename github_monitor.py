@@ -156,7 +156,7 @@ def getPublicSourceRepos(repos):
   public_repos = set()
   for repo in repos:
     if repo['private'] is False and repo['fork'] is False:
-      public_repos.add('full_name')
+      public_repos.add(repo['full_name'])
   return public_repos
 
 if __name__ == '__main__':
