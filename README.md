@@ -24,18 +24,19 @@ Run `setup.sh` which will install the necessary python packages.
 
 ```
 $ python github_monitor.py -h
-usage: github_monitor.py [-h] -k K -o O -aws_access_key_id AWS_ACCESS_KEY_ID
-                         -aws_secret_access_key AWS_SECRET_ACCESS_KEY
-                         -email_list EMAIL_LIST [-s] [-p] [-d]
+usage: github_monitor.py [-h] -k K -o O -t T -aws_access_key_id
+                         AWS_ACCESS_KEY_ID -aws_secret_access_key
+                         AWS_SECRET_ACCESS_KEY -email_list EMAIL_LIST [-s]
+                         [-p] [-c] [-d]
 
 Reconcile GitHub outside collaborators and public repos against whitelists,
 and monitors billing for number of repos. Alerts on conditions where
-collaborators or repos are found that are not in whitelists or if the number of
-repos is within organization plan limit
+collaborators or repos are found that are not in whitelists or if the number
+of repos is within organization plan limit
 
 optional arguments:
   -h, --help            show this help message and exit
-  -k K, -key K          A GitHub token(key) to use to talk to the API
+  -k K, -key K          The GitHub token(key) to use to talk to the API
   -o O, -org O          The Org name in GitHub
   -aws_access_key_id AWS_ACCESS_KEY_ID
                         A access key id for AWS to send email via SES

@@ -10,9 +10,6 @@ class github(object):
     org: The GitHub organization to interact with
   """
   OK = 200
-  PRIVATE_JSON_KEY = 'private'
-  FORK_JSON_KEY = 'fork'
-  FULL_NAME_JSON_KEY = 'full_name'
 
   def __init__(self, token, org):
     """Return a GitHub object configured with *token* and *org*."""
@@ -77,10 +74,3 @@ class github(object):
     #/repos/:owner/:repo/collaborators
     url = '%s/repos/%s/%s/collaborators' % (self.github_api_endpoint, self.org, repo['name'])
     return self.githubGet(url)
-
-  def getPublicSourceRepos(self):
-    public_repos = set()
-    for repo in self.githubGet(self.github_url_repos_list):
-      if repo.get(self.PRIVATE_JSON_KEY) == False and repo.get(self.FORK_JSON_KEY) == False:
-        public_repos.add(repo.get(self.FULL_NAME_JSON_KEY))
-    return public_repos

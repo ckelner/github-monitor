@@ -26,7 +26,7 @@ ERRORS = []
 EMAIL_BODY = 'The following issues were found in the TWC GitHub Org:\n\n'
 EMAIL_SUBJECT = 'Attn: TWC GitHub Org Issues detected!'
 
-def reconcileGitHubOutsideCollaborators(gh_org, skip, debug):
+def reconcileGitHubOutsideCollaborators(gh_org, repos, skip, debug):
   global ERRORS
   global EMAIL_BODY
   if skip is False:
@@ -37,10 +37,7 @@ def reconcileGitHubOutsideCollaborators(gh_org, skip, debug):
       members = gh_org.getAllOrgMembers() #set
     except GitHubHTTPException as e:
       ERRORS.append(str(e) + " -- during execution of reconcileGitHubOutsideCollaborators while calling github.getAllOrgMembers")
-    try:
-      repos = gh_org.getAllOrgRepos() #dict
-    except GitHubHTTPException as e:
-      ERRORS.append(str(e) + " -- during execution of reconcileGitHubOutsideCollaborators while calling github.getAllOrgRepos")
+      return 1
     try:
       whitelist = parseWhitelist(OUTSIDE_COLLABORATORS_WHITELIST_FILENAME)
     # @ckelner: not try... but need to capture to error to send via email
@@ -48,10 +45,10 @@ def reconcileGitHubOutsideCollaborators(gh_org, skip, debug):
       # @ckelner: a bit fugly... but considering we send it via email should be slightly helpful?
       # TODO: Improve?
       ERRORS.append(str(e) + " -- during execution of reconcileGitHubOutsideCollaborators while calling parseWhitelist")
-      return
+      return 1
     except ValueError as e:
       ERRORS.append(str(e) + " -- during execution of reconcileGitHubOutsideCollaborators while calling parseWhitelist")
-      return
+      return 1
     print 'Processing GitHub Repos for outside collaborators...'
     if debug:
       print 'In debug mode, setting false data, skipping calling all repos...'
@@ -75,25 +72,26 @@ def reconcileGitHubOutsideCollaborators(gh_org, skip, debug):
       EMAIL_BODY += '\nPlease remove the collaborators for the TWC Org.\n\n'
   else:
     print 'Skipping reconciling outside collaborators'
+    return 0
 
-def checkPublicSourceReposAgainstWhitelist(gh_org, skip):
+def checkPublicSourceReposAgainstWhitelist(gh_org, repos, skip):
   global ERRORS
   global EMAIL_BODY
   if skip is False:
     print 'Checking for public repositories...'
     try:
-      publicSourceRepos = gh_org.getPublicSourceRepos()
+      publicSourceRepos = getPublicSourceRepos(repos)
     except GitHubHTTPException as e:
       ERRORS.append(str(e) + " -- during execution of reconcileGitHubOutsideCollaborators while calling github.getAllOrgRepos")
-      return
+      return 1
     try:
       whitelist = parseWhitelist(REPO_WHITELIST_FILENAME)
     except IOError as e:
       ERRORS.append(str(e) + " -- during execution of checkPublicSourceReposAgainstWhitelist while calling parseWhitelist")
-      return
+      return 1
     except ValueError as e:
       ERRORS.append(str(e) + " -- during execution of checkPublicSourceReposAgainstWhitelist while calling parseWhitelist")
-      return
+      return 1
     first_find = True
     for repo in publicSourceRepos:
       if repo not in whitelist:
@@ -105,6 +103,7 @@ def checkPublicSourceReposAgainstWhitelist(gh_org, skip):
       EMAIL_BODY += '\nPlease contact the owners of these repos.\n\n'
   else:
     print 'Skipping check for publics repositories'
+    return 0
 
 # can throw: ValueError
 # can throw: IOError
@@ -127,6 +126,20 @@ def handleErrors(debug):
     for err in ERRORS:
       EMAIL_BODY += '- %s\n' % err
     EMAIL_BODY += 'Please investigate.\n'
+
+def getAllOrgRepos(gh_org):
+  try:
+    return gh_org.getAllOrgRepos() #dict
+  except GitHubHTTPException as e:
+    ERRORS.append(str(e) + " -- during execution of reconcileGitHubOutsideCollaborators while calling github.getAllOrgRepos")
+    return 1
+
+def getPublicSourceRepos(repos):
+  public_repos = set()
+  for repo in repos:
+    if repo['private'] is False and repo['fork'] is False:
+      public_repos.add('full_name')
+  return public_repos
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(
@@ -156,14 +169,21 @@ if __name__ == '__main__':
     print '!' * 25
     print '---- In debug mode ----'
     print '!' * 25
-  reconcileGitHubOutsideCollaborators(gh_org, args.s, args.d)
-  checkPublicSourceReposAgainstWhitelist(gh_org, args.p)
+  repos = getAllOrgRepos(gh_org)
+  if repos is not 1:
+    reconcileGitHubOutsideCollaborators(gh_org, repos, args.s, args.d)
+    checkPublicSourceReposAgainstWhitelist(gh_org, repos args.p)
+  else:
+    print 'Skipping checks, there was an error getting the GitHub organization repos'
   handleErrors(args.d)
   if args.d:
     print 'DEBUG: printing email body:\n'
+    print '-' * 50
+    print ''
     print EMAIL_BODY
+    print ''
+    print '-' * 50
   aws_ses.send(EMAIL_SUBJECT, EMAIL_BODY)
-  # TODO: GitHub Billing
   print 'Reconciliation complete.'
   print '-' * 50
   sys.exit()
