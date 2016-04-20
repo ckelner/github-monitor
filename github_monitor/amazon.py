@@ -41,6 +41,3 @@ class Amazon(object):
         }
       }
     )
-
-  def close(self):
-    self.client.close()
