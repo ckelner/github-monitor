@@ -13,9 +13,10 @@ class amazon(object):
     self.destination_emails = destination_emails.split(',')
 
     self.client = boto3.client(
-      'ses',
+      service_name='ses',
       aws_access_key_id=self.aws_access_key_id,
-      aws_secret_access_key=self.aws_secret_access_key
+      aws_secret_access_key=self.aws_secret_access_key,
+      region_name='us-east-1'
     )
 
   def send(self, subject, body):
