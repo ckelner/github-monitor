@@ -45,6 +45,7 @@ class github(object):
     if response.status_code is not self.OK:
       #kelnerhax - deal with it
       if response.status_code is self.FORBIDDEN:
+        print response.json()
         print '!INVESTIGATE! 403 while querying %s' % url
         print 'Data dump:'
         print json.dumps(json.loads(data), indent=4, sort_keys=True)
