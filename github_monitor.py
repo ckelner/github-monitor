@@ -89,7 +89,7 @@ def checkPublicSourceReposAgainstWhitelist(gh_org, repos, skip):
     try:
       publicSourceRepos = getPublicSourceRepos(repos)
     except GitHubHTTPException as e:
-      ERRORS.append(str(e) + " -- during execution of reconcileGitHubOutsideCollaborators while calling github.getAllOrgRepos")
+      ERRORS.append(str(e) + " -- during execution of checkPublicSourceReposAgainstWhitelist while calling getPublicSourceRepos")
       return 1
     try:
       whitelist = parseWhitelist(REPO_WHITELIST_FILENAME)
@@ -159,7 +159,7 @@ def getAllOrgRepos(gh_org):
   try:
     return gh_org.getAllOrgRepos() #dict
   except GitHubHTTPException as e:
-    ERRORS.append(str(e) + " -- during execution of reconcileGitHubOutsideCollaborators while calling github.getAllOrgRepos")
+    ERRORS.append(str(e) + " -- during execution of getAllOrgRepos while calling github.getAllOrgRepos")
     return 1
 
 def getPublicSourceRepos(repos):
