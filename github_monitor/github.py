@@ -1,6 +1,7 @@
 import requests
 import json
 import sys
+import time
 from custom_exceptions import GitHubHTTPException
 
 class github(object):
