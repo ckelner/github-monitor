@@ -39,9 +39,17 @@ class github(object):
   
   @staticmethod
   def printRateLimit(response):
-    print "Rate limit remaining: " + response.headers["X-RateLimit-Remaining"]
-    print "Rate limit reset: " + time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime(float(response.headers["X-RateLimit-Reset"])))
+    print "Rate limit remaining: " + self.getRateLimitVal(response.headers)
+    print "Rate limit reset: " + time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime(float(self.getRateLimitResetVal(response.headers))))
     print "Current UTC time: " + time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime())
+  
+  @staticmethod
+  def getRateLimitVal(headers):
+    return headers["X-RateLimit-Remaining"]
+  
+  @staticmethod
+  def getRateLimitResetVal(headers):
+    return headers["X-RateLimit-Reset"]
 
   def formatInvalidHttpStatusMessage(self, url, status_code):
     return ('ERROR: Did not recieve 200 OK from ' + url + '\nReceived ' +
@@ -49,15 +57,29 @@ class github(object):
 
   def githubGet(self, url, data=[]):
     response = requests.get(url, headers=self.HEADERS)
-    self.printRateLimit(response)
     if response.status_code is not self.OK:
       print 'Recieved non-200 response code: %s' % response.status_code
+      self.printRateLimit(response)
       #kelnerhax - deal with it
       if response.status_code is self.FORBIDDEN:
         print response.json()
         print '!INVESTIGATE! 403 while querying %s' % url
         print 'Data dump:'
         print json.dumps(json.loads(data), indent=4, sort_keys=True)
+        print 'Checking for rate limit issues'
+        if self.getRateLimitVal(response.headers) == 0:
+          print 'Rate limit has been exceeded, will wait until reset'
+          def resetTime = self.getRateLimitResetVal(response.headers)
+          def curTime = time.time()
+          def delta = resetTime - curTime
+          if delta > 0:
+              print 'Cur time: ' + str(curTime) + ' Reset time: ' + str(resetTime)
+              print 'Sleeping for: ' + str(delta/2)
+              time.sleep(delta/2)
+              self.githubGet(url, data)
+          else:
+              # shouldn't need to wait... reset has happened
+              self.githubGet(url, data)
       else: 
         raise GitHubHTTPException(self.formatInvalidHttpStatusMessage(url, response.status_code))
     response_json = response.json()
