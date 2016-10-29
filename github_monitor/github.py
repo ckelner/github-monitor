@@ -69,9 +69,9 @@ class github(object):
         print 'Checking for rate limit issues'
         if self.getRateLimitVal(response.headers) == 0:
           print 'Rate limit has been exceeded, will wait until reset'
-          def resetTime = self.getRateLimitResetVal(response.headers)
-          def curTime = time.time()
-          def delta = resetTime - curTime
+          resetTime = self.getRateLimitResetVal(response.headers)
+          curTime = time.time()
+          delta = resetTime - curTime
           if delta > 0:
               print 'Cur time: ' + str(curTime) + ' Reset time: ' + str(resetTime)
               print 'Sleeping for: ' + str(delta/2)
