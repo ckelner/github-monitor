@@ -35,6 +35,12 @@ class github(object):
         # rel="next"
         next_link = link.split(';')[0].replace('<', '').replace('>', '')
     return next_link
+  
+  @staticmethod
+  def printRateLimit(response):
+    print "Rate limit remaining: " + response.headers["X-RateLimit-Remaining"]
+    print "Rate limit reset: " + time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime(float(response.headers["X-RateLimit-Reset"])))
+    print "Current UTC time: " + time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime())
 
   def formatInvalidHttpStatusMessage(self, url, status_code):
     return ('ERROR: Did not recieve 200 OK from ' + url + '\nReceived ' +
@@ -42,6 +48,7 @@ class github(object):
 
   def githubGet(self, url, data=[]):
     response = requests.get(url, headers=self.HEADERS)
+    printRateLimit(response)
     if response.status_code is not self.OK:
       print 'Recieved non-200 response code: %s' % response.status_code
       #kelnerhax - deal with it
