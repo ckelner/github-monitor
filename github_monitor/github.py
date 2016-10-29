@@ -10,6 +10,7 @@ class github(object):
     org: The GitHub organization to interact with
   """
   OK = 200
+  FORBIDDEN = 403
 
   def __init__(self, token, org):
     """Return a GitHub object configured with *token* and *org*."""
@@ -42,7 +43,13 @@ class github(object):
   def githubGet(self, url, data=[]):
     response = requests.get(url, headers=self.HEADERS)
     if response.status_code is not self.OK:
-      raise GitHubHTTPException(self.formatInvalidHttpStatusMessage(url, response.status_code))
+      #kelnerhax - deal with it
+      if response.status_code is self.FORBIDDEN:
+        print '!INVESTIGATE! 403 while querying %s' % url
+        print 'Data dump:'
+        print json.dumps(json.loads(data), indent=4, sort_keys=True)
+      else: 
+        raise GitHubHTTPException(self.formatInvalidHttpStatusMessage(url, response.status_code))
     response_json = response.json()
     link = None
     try:
