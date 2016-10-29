@@ -48,7 +48,7 @@ class github(object):
 
   def githubGet(self, url, data=[]):
     response = requests.get(url, headers=self.HEADERS)
-    printRateLimit(response)
+    self.printRateLimit(response)
     if response.status_code is not self.OK:
       print 'Recieved non-200 response code: %s' % response.status_code
       #kelnerhax - deal with it
