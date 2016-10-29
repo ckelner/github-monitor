@@ -37,17 +37,14 @@ class github(object):
         next_link = link.split(';')[0].replace('<', '').replace('>', '')
     return next_link
   
-  @staticmethod
   def printRateLimit(response):
     print "Rate limit remaining: " + self.getRateLimitVal(response.headers)
     print "Rate limit reset: " + time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime(float(self.getRateLimitResetVal(response.headers))))
     print "Current UTC time: " + time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime())
   
-  @staticmethod
   def getRateLimitVal(headers):
     return headers["X-RateLimit-Remaining"]
   
-  @staticmethod
   def getRateLimitResetVal(headers):
     return headers["X-RateLimit-Reset"]
 
