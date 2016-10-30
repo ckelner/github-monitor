@@ -71,8 +71,8 @@ class github(object):
           delta = resetTime - curTime
           if delta > 0:
             print 'Cur time: ' + str(curTime) + ' Reset time: ' + str(resetTime)
-            print 'Sleeping for: ' + str(delta/2)
-            time.sleep(delta/2)
+            print 'Sleeping for: ' + str(delta)
+            time.sleep(delta)
             self.githubGet(url, data)
           else:
             # shouldn't need to wait... reset has happened
