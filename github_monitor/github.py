@@ -63,8 +63,6 @@ class github(object):
       if int(response.status_code) == int(self.FORBIDDEN):
         print response.json()
         print '!INVESTIGATE! 403 while querying %s' % url
-        print 'Data dump:'
-        print json.dumps(json.loads(data), indent=4, sort_keys=True)
         print 'Checking for rate limit issues'
         if self.getRateLimitVal(response.headers) == 0:
           print 'Rate limit has been exceeded, will wait until reset'
