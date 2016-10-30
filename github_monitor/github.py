@@ -56,11 +56,11 @@ class github(object):
 
   def githubGet(self, url, data=[]):
     response = requests.get(url, headers=self.HEADERS)
-    if response.status_code is not self.OK:
+    if int(response.status_code) != int(self.OK):
       print 'Recieved non-200 response code: %s' % response.status_code
       self.printRateLimit(response.headers)
       #kelnerhax - deal with it
-      if response.status_code is self.FORBIDDEN:
+      if int(response.status_code) == int(self.FORBIDDEN):
         print response.json()
         print '!INVESTIGATE! 403 while querying %s' % url
         print 'Data dump:'
