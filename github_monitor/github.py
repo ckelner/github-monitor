@@ -37,9 +37,9 @@ class github(object):
         next_link = link.split(';')[0].replace('<', '').replace('>', '')
     return next_link
   
-  def printRateLimit(response):
-    print "Rate limit remaining: " + self.getRateLimitVal(response.headers)
-    print "Rate limit reset: " + time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime(float(self.getRateLimitResetVal(response.headers))))
+  def printRateLimit(headers):
+    print "Rate limit remaining: " + self.getRateLimitVal(headers)
+    print "Rate limit reset: " + time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime(float(self.getRateLimitResetVal(headers))))
     print "Current UTC time: " + time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime())
   
   def getRateLimitVal(headers):
@@ -56,7 +56,7 @@ class github(object):
     response = requests.get(url, headers=self.HEADERS)
     if response.status_code is not self.OK:
       print 'Recieved non-200 response code: %s' % response.status_code
-      self.printRateLimit(response)
+      self.printRateLimit(response.headers)
       #kelnerhax - deal with it
       if response.status_code is self.FORBIDDEN:
         print response.json()
