@@ -2,6 +2,7 @@
   "data": [
     "TheWeatherCompany/StormTheRoad-Hackathon",
     "TheWeatherCompany/apache-brooklyn-go",
-    "TheWeatherCompany/twcios-prototype-googleimatableview"
+    "TheWeatherCompany/twcios-prototype-googleimatableview",
+    "TheWeatherCompany/terraform-provider-swift"
   ]
 }

@@ -1,6 +1,7 @@
 import requests
 import json
 import sys
+import time
 from custom_exceptions import GitHubHTTPException
 
 class github(object):
@@ -10,6 +11,7 @@ class github(object):
     org: The GitHub organization to interact with
   """
   OK = 200
+  FORBIDDEN = 403
 
   def __init__(self, token, org):
     """Return a GitHub object configured with *token* and *org*."""
@@ -34,6 +36,19 @@ class github(object):
         # rel="next"
         next_link = link.split(';')[0].replace('<', '').replace('>', '')
     return next_link
+  
+  @staticmethod
+  def getRateLimitVal(headers):
+    return int(headers["X-RateLimit-Remaining"])
+  
+  @staticmethod
+  def getRateLimitResetVal(headers):
+    return int(headers["X-RateLimit-Reset"])
+  
+  def printRateLimit(self, headers):
+    print "Rate limit remaining: " + str(self.getRateLimitVal(headers))
+    print "Rate limit reset: " + time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime(float(self.getRateLimitResetVal(headers))))
+    print "Current UTC time: " + time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime())
 
   def formatInvalidHttpStatusMessage(self, url, status_code):
     return ('ERROR: Did not recieve 200 OK from ' + url + '\nReceived ' +
@@ -41,8 +56,31 @@ class github(object):
 
   def githubGet(self, url, data=[]):
     response = requests.get(url, headers=self.HEADERS)
-    if response.status_code is not self.OK:
-      raise GitHubHTTPException(self.formatInvalidHttpStatusMessage(url, response.status_code))
+    if int(response.status_code) != int(self.OK):
+      print 'Recieved non-200 response code: %s' % response.status_code
+      self.printRateLimit(response.headers)
+      #kelnerhax - deal with it
+      if int(response.status_code) == int(self.FORBIDDEN):
+        print response.json()
+        print '!INVESTIGATE! 403 while querying %s' % url
+        print 'Checking for rate limit issues'
+        if self.getRateLimitVal(response.headers) == 0:
+          print 'Rate limit has been exceeded, will wait until reset'
+          resetTime = self.getRateLimitResetVal(response.headers)
+          curTime = time.time()
+          delta = resetTime - curTime
+          if delta > 0:
+            print 'Cur time: ' + str(curTime) + ' Reset time: ' + str(resetTime)
+            print 'Sleeping for: ' + str(delta)
+            time.sleep(delta)
+            self.githubGet(url, data)
+          else:
+            # shouldn't need to wait... reset has happened
+            self.githubGet(url, data)
+        else:
+          raise GitHubHTTPException(self.formatInvalidHttpStatusMessage(url, response.status_code))
+      else: 
+        raise GitHubHTTPException(self.formatInvalidHttpStatusMessage(url, response.status_code))
     response_json = response.json()
     link = None
     try:
