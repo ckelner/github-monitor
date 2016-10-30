@@ -37,16 +37,18 @@ class github(object):
         next_link = link.split(';')[0].replace('<', '').replace('>', '')
     return next_link
   
-  def printRateLimit(headers):
-    print "Rate limit remaining: " + self.getRateLimitVal(headers)
-    print "Rate limit reset: " + time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime(float(self.getRateLimitResetVal(headers))))
-    print "Current UTC time: " + time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime())
-  
+  @staticmethod
   def getRateLimitVal(headers):
     return headers["X-RateLimit-Remaining"]
   
+  @staticmethod
   def getRateLimitResetVal(headers):
     return headers["X-RateLimit-Reset"]
+  
+  def printRateLimit(self, headers):
+    print "Rate limit remaining: " + self.getRateLimitVal(headers)
+    print "Rate limit reset: " + time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime(float(self.getRateLimitResetVal(headers))))
+    print "Current UTC time: " + time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime())
 
   def formatInvalidHttpStatusMessage(self, url, status_code):
     return ('ERROR: Did not recieve 200 OK from ' + url + '\nReceived ' +
