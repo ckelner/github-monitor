@@ -1,1 +1,3 @@
 *.pyc
+outside_collaborators_whitelist.json
+public_repos_whitelist.json
