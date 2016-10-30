@@ -39,14 +39,14 @@ class github(object):
   
   @staticmethod
   def getRateLimitVal(headers):
-    return headers["X-RateLimit-Remaining"]
+    return int(headers["X-RateLimit-Remaining"])
   
   @staticmethod
   def getRateLimitResetVal(headers):
     return headers["X-RateLimit-Reset"]
   
   def printRateLimit(self, headers):
-    print "Rate limit remaining: " + self.getRateLimitVal(headers)
+    print "Rate limit remaining: " + str(self.getRateLimitVal(headers))
     print "Rate limit reset: " + time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime(float(self.getRateLimitResetVal(headers))))
     print "Current UTC time: " + time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime())
 
@@ -70,13 +70,15 @@ class github(object):
           curTime = time.time()
           delta = resetTime - curTime
           if delta > 0:
-              print 'Cur time: ' + str(curTime) + ' Reset time: ' + str(resetTime)
-              print 'Sleeping for: ' + str(delta/2)
-              time.sleep(delta/2)
-              self.githubGet(url, data)
+            print 'Cur time: ' + str(curTime) + ' Reset time: ' + str(resetTime)
+            print 'Sleeping for: ' + str(delta/2)
+            time.sleep(delta/2)
+            self.githubGet(url, data)
           else:
-              # shouldn't need to wait... reset has happened
-              self.githubGet(url, data)
+            # shouldn't need to wait... reset has happened
+            self.githubGet(url, data)
+        else:
+          raise GitHubHTTPException(self.formatInvalidHttpStatusMessage(url, response.status_code))
       else: 
         raise GitHubHTTPException(self.formatInvalidHttpStatusMessage(url, response.status_code))
     response_json = response.json()
