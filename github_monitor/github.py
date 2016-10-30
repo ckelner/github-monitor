@@ -43,7 +43,7 @@ class github(object):
   
   @staticmethod
   def getRateLimitResetVal(headers):
-    return headers["X-RateLimit-Reset"]
+    return int(headers["X-RateLimit-Reset"])
   
   def printRateLimit(self, headers):
     print "Rate limit remaining: " + str(self.getRateLimitVal(headers))
