@@ -188,6 +188,7 @@ if __name__ == '__main__':
   parser.add_argument('-aws_secret_access_key', help='A secret access key for AWS to send email via SES',
     required=True)
   parser.add_argument('-email_list', help='CSV of emails to send alerts to', required=True)
+  parser.add_argument('-source_email', help='Email to send from via SES', required=True)
   parser.add_argument('-s', '-skip_outside_collab', help='Skips checking outside collaborators',
     action='store_true', default=False)
   parser.add_argument('-p', '-skip_public_repos', help='Skips checking publics repos',
@@ -199,7 +200,7 @@ if __name__ == '__main__':
   args = parser.parse_args()
   compileall.compile_dir('github_monitor/', force=True)
   aws_ses = amazon(args.aws_access_key_id, args.aws_secret_access_key, args.email_list,
-    'grid-team@weather.com')
+    args.source_email)
   gh_org = github(args.k, args.o)
   if args.d:
     print '!' * 25
