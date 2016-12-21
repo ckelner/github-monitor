@@ -1,5 +1,7 @@
 # GitHub monitor
 
+**_Note: This was a single day "Hack Day" app written to reduce administrative duties and tech debt; because of that, it does not employ the best of practices_**
+
 A little script to monitor certain scenarios in GitHub and alert on them via email.
 
 Monitors in place are:
